@@ -1,5 +1,15 @@
+# Vagrant (самое важное!)
+.vagrant/
+
+# Python мусор
 __pycache__/
 *.py[cod]
-.env
+*$py.class
 .venv/
-.vscode/
+venv/
+
+# Docker
+.docker/
+
+# Логи и временные файлы
+*.log

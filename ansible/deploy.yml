@@ -1,0 +1,45 @@
+---
+- name: Deploy our Flask App
+  hosts: all
+  become: yes  # Запускать всё от имени sudo
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker-Compose is installed
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Create a directory for the app
+      file:
+        path: /home/vagrant/app
+        state: directory
+        mode: '0755'
+
+    - name: Copy docker-compose file
+      copy:
+        src: ../docker-compose.yml
+        dest: /home/vagrant/app/docker-compose.yml
+
+    - name: Copy app folder
+      copy:
+        src: ../app/
+        dest: /home/vagrant/app/app/
+
+    - name: Run Docker-Compose
+      shell:
+        cmd: docker-compose up -d
+        chdir: /home/vagrant/app
+
+    - name: Add vagrant user to docker group
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+
+    - name: Reset ssh connection to apply group changes
+      meta: reset_connection
