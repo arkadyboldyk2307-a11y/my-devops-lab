@@ -3,32 +3,39 @@
   hosts: all
   become: yes
   tasks:
-    - name: Install Docker and Docker-Compose
+    - name: Remove old docker-compose if exists
       apt:
-        name: "{{ item }}"
+        name: docker-compose
+        state: absent
+
+    - name: Install Docker and Docker Compose V2
+      apt:
+        name: 
+          - docker.io
+          - docker-compose-v2
         state: present
         update_cache: yes
-      loop:
-        - docker.io
-        - docker-compose
 
     - name: Create app directory
       file:
         path: /home/vagrant/app
         state: directory
+        owner: vagrant
 
-    - name: Copy docker-compose file only
+    - name: Copy docker-compose file
       copy:
         src: "/vagrant/docker-compose.yml"
         dest: "/home/vagrant/app/docker-compose.yml"
         remote_src: yes
 
-    - name: Pull latest images from Docker Hub
+    - name: Pull latest images
       shell:
-        cmd: docker-compose pull
+        # ЗАМЕТЬ: теперь 'docker compose' без дефиса
+        cmd: docker compose pull
         chdir: /home/vagrant/app
 
     - name: Start Application
       shell:
-        cmd: docker-compose up -d
+        # ЗАМЕТЬ: теперь 'docker compose' без дефиса
+        cmd: docker compose up -d
         chdir: /home/vagrant/app
