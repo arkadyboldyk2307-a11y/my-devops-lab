@@ -1,45 +1,34 @@
 ---
-- name: Deploy our Flask App
+- name: Deploy from Docker Hub
   hosts: all
-  become: yes  # Запускать всё от имени sudo
+  become: yes
   tasks:
-    - name: Ensure Docker is installed
+    - name: Install Docker and Docker-Compose
       apt:
-        name: docker.io
+        name: "{{ item }}"
         state: present
         update_cache: yes
+      loop:
+        - docker.io
+        - docker-compose
 
-    - name: Ensure Docker-Compose is installed
-      apt:
-        name: docker-compose
-        state: present
-
-    - name: Create a directory for the app
+    - name: Create app directory
       file:
         path: /home/vagrant/app
         state: directory
-        mode: '0755'
 
-    - name: Copy docker-compose file
+    - name: Copy docker-compose file only
       copy:
-        src: ../docker-compose.yml
-        dest: /home/vagrant/app/docker-compose.yml
+        src: "/vagrant/docker-compose.yml"
+        dest: "/home/vagrant/app/docker-compose.yml"
+        remote_src: yes
 
-    - name: Copy app folder
-      copy:
-        src: ../app/
-        dest: /home/vagrant/app/app/
+    - name: Pull latest images from Docker Hub
+      shell:
+        cmd: docker-compose pull
+        chdir: /home/vagrant/app
 
-    - name: Run Docker-Compose
+    - name: Start Application
       shell:
         cmd: docker-compose up -d
         chdir: /home/vagrant/app
-
-    - name: Add vagrant user to docker group
-      user:
-        name: vagrant
-        groups: docker
-        append: yes
-
-    - name: Reset ssh connection to apply group changes
-      meta: reset_connection
